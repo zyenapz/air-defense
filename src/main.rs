@@ -1,15 +1,15 @@
+use std::time::Duration;
+
 /// Station commander!
 /// Defend your space station under attack!
 /// TODO:
 /// + add a way to shoot
 /// - add a way to aim
-/// - add cooldown for shooting
+/// + add cooldown for shooting
 /// - add function for spawning fighters
 /// - add simple enemies
 /// - add a way to despawn the bullets when they're out of view
-use bevy::{
-    ecs::system::QuerySingleError, prelude::*, reflect::erased_serde::private::serde::__private::de,
-};
+use bevy::prelude::*;
 
 #[derive(Component)]
 struct Player;
@@ -19,12 +19,19 @@ struct Bullet {
     direction: Vec2,
 }
 
+#[derive(Component)]
+struct ShootCDTimer {
+    timer: Timer,
+}
+
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_startup_system(setup)
+        .add_startup_system(setup_shoot_timer)
         .add_system(move_bullet)
         .add_system(shoot)
+        .add_system(upgrade_timer)
         .insert_resource(ClearColor(Color::rgb(0., 0.4, 0.4)))
         .run();
 }
@@ -53,8 +60,15 @@ fn setup(mut commands: Commands) {
         .insert(Player);
 }
 
-fn shoot(mut commands: Commands, kb: Res<Input<KeyCode>>) {
-    if kb.pressed(KeyCode::Space) {
+fn shoot(
+    mut commands: Commands,
+    kb: Res<Input<KeyCode>>,
+    time: Res<Time>,
+    mut config: ResMut<ShootCDTimer>,
+) {
+    config.timer.tick(time.delta());
+
+    if kb.pressed(KeyCode::Space) && config.timer.finished() {
         commands
             .spawn_bundle(SpriteBundle {
                 sprite: Sprite {
@@ -68,7 +82,31 @@ fn shoot(mut commands: Commands, kb: Res<Input<KeyCode>>) {
             .insert(Bullet {
                 direction: Vec2::new(0., 1.),
             });
+
+        config.timer.reset();
     }
+}
+
+fn upgrade_timer(
+    kb: Res<Input<KeyCode>>,
+    mut query: Query<&mut ShootCDTimer>,
+    mut commands: Commands,
+) {
+    if kb.pressed(KeyCode::Q) {
+        commands.insert_resource(ShootCDTimer {
+            timer: Timer::new(Duration::from_millis(500), true),
+        })
+    } else if kb.pressed(KeyCode::W) {
+        commands.insert_resource(ShootCDTimer {
+            timer: Timer::new(Duration::from_millis(100), true),
+        })
+    }
+}
+
+fn setup_shoot_timer(mut commands: Commands) {
+    commands.insert_resource(ShootCDTimer {
+        timer: Timer::new(Duration::from_millis(800), true),
+    })
 }
 
 const BULLET_SPEED: f32 = 550.;
