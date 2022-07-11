@@ -1,3 +1,9 @@
+/// Station commander!
+/// Defend your space station under attack!
+/// TODO:
+/// 1. add a way to shoot
+/// 2. add function for spawning fighters
+/// 3. add simple enemies
 use bevy::prelude::*;
 
 #[derive(Component)]
@@ -30,7 +36,7 @@ fn setup(mut commands: Commands) {
                 custom_size: Some(Vec2::new(50., 50.)),
                 ..default()
             },
-            transform: Transform::from_xyz(100., 100., 0.),
+            transform: Transform::from_xyz(0., 0., 0.),
             ..default()
         })
         .insert(Player);
@@ -43,6 +49,8 @@ fn move_player(
     mut query: Query<(&Player, &mut Transform)>,
 ) {
     let mut transform = query.single_mut().1;
+
+    // println!("{} {}", transform.translation.x, transform.translation.y);
 
     let mut dx = 0.;
     let mut dy = 0.;
