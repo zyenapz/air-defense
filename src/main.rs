@@ -4,6 +4,7 @@ use std::time::Duration;
 /// Defend your space station under attack!
 /// TODO:
 /// + add a way to shoot
+/// + added crosshair
 /// - add a way to aim
 /// + add cooldown for shooting
 /// - add function for spawning fighters
@@ -24,6 +25,9 @@ struct ShootCDTimer {
     timer: Timer,
 }
 
+#[derive(Component)]
+struct Crosshair;
+
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
@@ -32,6 +36,7 @@ fn main() {
         .add_system(move_bullet)
         .add_system(shoot)
         .add_system(upgrade_timer)
+        .add_system(move_crosshair)
         .insert_resource(ClearColor(Color::rgb(0., 0.4, 0.4)))
         .run();
 }
@@ -54,10 +59,21 @@ fn setup(mut commands: Commands) {
                 custom_size: Some(Vec2::new(50., 50.)),
                 ..default()
             },
-            transform: Transform::from_xyz(0., 0., 0.),
+            transform: Transform::from_xyz(0., -300., 0.),
             ..default()
         })
         .insert(Player);
+    commands
+        .spawn_bundle(SpriteBundle {
+            sprite: Sprite {
+                color: Color::RED,
+                custom_size: Some(Vec2::new(10., 10.)),
+                ..default()
+            },
+            transform: Transform::from_xyz(0., 0., 0.),
+            ..default()
+        })
+        .insert(Crosshair);
 }
 
 fn shoot(
@@ -65,10 +81,13 @@ fn shoot(
     kb: Res<Input<KeyCode>>,
     time: Res<Time>,
     mut config: ResMut<ShootCDTimer>,
+    player: Query<(&Player, &Transform)>,
 ) {
     config.timer.tick(time.delta());
 
     if kb.pressed(KeyCode::Space) && config.timer.finished() {
+        let player_pos = player.single().1;
+
         commands
             .spawn_bundle(SpriteBundle {
                 sprite: Sprite {
@@ -76,7 +95,11 @@ fn shoot(
                     custom_size: Some(Vec2::new(10., 10.)),
                     ..default()
                 },
-                transform: Transform::from_xyz(100., 0., 0.),
+                transform: Transform::from_xyz(
+                    player_pos.translation.x,
+                    player_pos.translation.y,
+                    0.,
+                ),
                 ..default()
             })
             .insert(Bullet {
@@ -84,6 +107,21 @@ fn shoot(
             });
 
         config.timer.reset();
+    }
+}
+
+const CROSSHAIR_SPEED: f32 = 250.;
+
+fn move_crosshair(
+    kb: Res<Input<KeyCode>>,
+    mut crosshair: Query<(&Crosshair, &mut Transform)>,
+    time: Res<Time>,
+) {
+    if kb.pressed(KeyCode::A) {
+        crosshair.single_mut().1.translation.x -= CROSSHAIR_SPEED * time.delta_seconds();
+    }
+    if kb.pressed(KeyCode::D) {
+        crosshair.single_mut().1.translation.x += CROSSHAIR_SPEED * time.delta_seconds();
     }
 }
 
