@@ -5,7 +5,7 @@ use std::time::Duration;
 /// TODO:
 /// + add a way to shoot
 /// + added crosshair
-/// - add a way to aim
+/// + add a way to aim
 /// + add cooldown for shooting
 /// - add function for spawning fighters
 /// - add simple enemies
@@ -82,11 +82,23 @@ fn shoot(
     time: Res<Time>,
     mut config: ResMut<ShootCDTimer>,
     player: Query<(&Player, &Transform)>,
+    crosshair: Query<(&Crosshair, &Transform)>,
 ) {
     config.timer.tick(time.delta());
 
     if kb.pressed(KeyCode::Space) && config.timer.finished() {
         let player_pos = player.single().1;
+        let ch_pos = crosshair.single().1;
+
+        // calculate dx and dy
+        let rel_y = ch_pos.translation.y - player_pos.translation.y;
+        let rel_x = ch_pos.translation.x - player_pos.translation.x;
+        let angle = rel_x.atan2(rel_y);
+
+        let dx = angle.sin();
+        let dy = angle.cos();
+
+        println!("x{:?} y{:?}", dx, dy);
 
         commands
             .spawn_bundle(SpriteBundle {
@@ -103,7 +115,7 @@ fn shoot(
                 ..default()
             })
             .insert(Bullet {
-                direction: Vec2::new(0., 1.),
+                direction: Vec2::new(dx, dy),
             });
 
         config.timer.reset();
@@ -125,11 +137,7 @@ fn move_crosshair(
     }
 }
 
-fn upgrade_timer(
-    kb: Res<Input<KeyCode>>,
-    mut query: Query<&mut ShootCDTimer>,
-    mut commands: Commands,
-) {
+fn upgrade_timer(kb: Res<Input<KeyCode>>, mut commands: Commands) {
     if kb.pressed(KeyCode::Q) {
         commands.insert_resource(ShootCDTimer {
             timer: Timer::new(Duration::from_millis(500), true),
@@ -150,10 +158,10 @@ fn setup_shoot_timer(mut commands: Commands) {
 const BULLET_SPEED: f32 = 550.;
 fn move_bullet(time: Res<Time>, mut query: Query<(&Bullet, &mut Transform)>) {
     for (b, mut tr) in query.iter_mut() {
-        let mut direction = b.direction;
+        let direction = b.direction;
 
-        let mut dx = BULLET_SPEED * time.delta_seconds();
-        let mut dy = BULLET_SPEED * time.delta_seconds();
+        let dx = direction.x * BULLET_SPEED * time.delta_seconds();
+        let dy = direction.y * BULLET_SPEED * time.delta_seconds();
 
         tr.translation.x += dx;
         tr.translation.y += dy;
