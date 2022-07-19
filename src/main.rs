@@ -7,10 +7,14 @@ use std::time::Duration;
 /// + added crosshair
 /// + add a way to aim
 /// + add cooldown for shooting
-/// - add function for spawning fighters
+/// - add function for spawning allied fighters
 /// - add simple enemies
 /// - add a way to despawn the bullets when they're out of view
-use bevy::prelude::*;
+
+/// Game objectives:
+/// - shoot aliens and asteroids
+/// - defend the cargo ships (they will deliver powerups, health, etc.
+use bevy::{input::mouse::MouseMotion, prelude::*, render::camera::RenderTarget};
 
 #[derive(Component)]
 struct Player;
@@ -28,30 +32,43 @@ struct ShootCDTimer {
 #[derive(Component)]
 struct Crosshair;
 
+#[derive(Component)]
+struct MainCamera;
+
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_startup_system(setup)
         .add_startup_system(setup_shoot_timer)
+        .add_startup_system(setup_window)
         .add_system(move_bullet)
         .add_system(shoot)
-        .add_system(upgrade_timer)
+        .add_system(upgrade_weapon)
         .add_system(move_crosshair)
         .insert_resource(ClearColor(Color::rgb(0., 0.4, 0.4)))
         .run();
 }
 
-fn setup(mut commands: Commands) {
-    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
-    commands.spawn_bundle(SpriteBundle {
-        sprite: Sprite {
-            color: Color::rgb(1., 0., 1.),
-            custom_size: Some(Vec2::new(50., 50.)),
-            ..default()
-        },
-        transform: Transform::from_xyz(200., 100., 0.),
-        ..default()
-    });
+fn setup_window(mut windows: ResMut<Windows>) {
+    let window = windows.get_primary_mut().unwrap();
+
+    window.set_resolution(800., 600.);
+    window.set_title("Station Commander".to_string());
+    window.set_resizable(false);
+}
+
+fn setup(windows: Res<Windows>, mut commands: Commands) {
+    // Camera
+    commands
+        .spawn()
+        .insert_bundle(OrthographicCameraBundle::new_2d())
+        .insert(MainCamera);
+
+    // Station (Player)
+
+    let win_h = -(windows.get_primary().unwrap().height() / 2.);
+    println!("{}", win_h);
+
     commands
         .spawn_bundle(SpriteBundle {
             sprite: Sprite {
@@ -59,10 +76,12 @@ fn setup(mut commands: Commands) {
                 custom_size: Some(Vec2::new(50., 50.)),
                 ..default()
             },
-            transform: Transform::from_xyz(0., -300., 0.),
+            transform: Transform::from_xyz(0., win_h + 100., 0.),
             ..default()
         })
         .insert(Player);
+
+    // Crosshair
     commands
         .spawn_bundle(SpriteBundle {
             sprite: Sprite {
@@ -122,27 +141,51 @@ fn shoot(
     }
 }
 
-const CROSSHAIR_SPEED: f32 = 250.;
-
 fn move_crosshair(
-    kb: Res<Input<KeyCode>>,
+    // crosshair
     mut crosshair: Query<(&Crosshair, &mut Transform)>,
-    time: Res<Time>,
+    // need to get window dimensions
+    wnds: Res<Windows>,
+    // query to get camera transform
+    q_camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
 ) {
-    if kb.pressed(KeyCode::A) {
-        crosshair.single_mut().1.translation.x -= CROSSHAIR_SPEED * time.delta_seconds();
-    }
-    if kb.pressed(KeyCode::D) {
-        crosshair.single_mut().1.translation.x += CROSSHAIR_SPEED * time.delta_seconds();
+    // get the camera info and transform
+    // assuming there is exactly one main camera entity, so query::single() is OK
+    let (camera, camera_transform) = q_camera.single();
+
+    // get the window that the camera is displaying to (or the primary window)
+    let wnd = wnds.get_primary().unwrap();
+
+    // check if the cursor is inside the window and get its position
+    if let Some(screen_pos) = wnd.cursor_position() {
+        // get the size of the window
+        let window_size = Vec2::new(wnd.width() as f32, wnd.height() as f32);
+
+        // convert screen position [0..resolution] to ndc [-1..1] (gpu coordinates)
+        let ndc = (screen_pos / window_size) * 2.0 - Vec2::ONE;
+
+        // matrix for undoing the projection and camera transform
+        let ndc_to_world = camera_transform.compute_matrix() * camera.projection_matrix.inverse();
+
+        // use it to convert ndc to world-space coordinates
+        let world_pos = ndc_to_world.project_point3(ndc.extend(-1.0));
+
+        // reduce it to a 2D value
+        let world_pos: Vec2 = world_pos.truncate();
+
+        crosshair.single_mut().1.translation.x = world_pos.x;
+        crosshair.single_mut().1.translation.y = world_pos.y;
+
+        eprintln!("World coords: {}/{}", world_pos.x, world_pos.y);
     }
 }
 
-fn upgrade_timer(kb: Res<Input<KeyCode>>, mut commands: Commands) {
-    if kb.pressed(KeyCode::Q) {
+fn upgrade_weapon(kb: Res<Input<KeyCode>>, mut commands: Commands) {
+    if kb.pressed(KeyCode::F1) {
         commands.insert_resource(ShootCDTimer {
             timer: Timer::new(Duration::from_millis(500), true),
         })
-    } else if kb.pressed(KeyCode::W) {
+    } else if kb.pressed(KeyCode::F2) {
         commands.insert_resource(ShootCDTimer {
             timer: Timer::new(Duration::from_millis(100), true),
         })
