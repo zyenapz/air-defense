@@ -52,7 +52,7 @@ fn main() {
 fn setup_window(mut windows: ResMut<Windows>) {
     let window = windows.get_primary_mut().unwrap();
 
-    window.set_resolution(800., 600.);
+    window.set_resolution(500., 750.);
     window.set_title("Station Commander".to_string());
     window.set_resizable(false);
 }
@@ -73,7 +73,7 @@ fn setup(windows: Res<Windows>, mut commands: Commands) {
         .spawn_bundle(SpriteBundle {
             sprite: Sprite {
                 color: Color::rgb(1., 1., 1.),
-                custom_size: Some(Vec2::new(50., 50.)),
+                custom_size: Some(Vec2::new(48., 48.)),
                 ..default()
             },
             transform: Transform::from_xyz(0., win_h + 100., 0.),
