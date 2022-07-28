@@ -11,12 +11,13 @@
 ///     - randomize spawning off-camera (or perhaps add a spawning box)
 ///     - randomize speed and direction
 /// + add zooming (for debugging)
+/// - add border that encloses the 800x800 world (for debugging, again)
 /// - add function for spawning allied fighters
 /// - add a way to despawn the bullets when they're out of view
 
 /// Game objectives:
-/// - shoot aliens and asteroids
-/// - defend the cargo ships (they will deliver powerups, health, etc.
+/// > shoot aliens and asteroids
+/// > defend the cargo ships (they will deliver powerups, health, etc.
 use bevy::{input::mouse::MouseMotion, prelude::*, render::camera::RenderTarget};
 use lib::{
     asteroid::{spawn_asteroid, update_asteroid},
