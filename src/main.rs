@@ -5,8 +5,12 @@
 /// + added crosshair
 /// + add a way to aim
 /// + add cooldown for shooting
+/// - add asteroids
+///     + add way to spawn them
+///     + add update code
+///     - randomize spawning off-camera
+///     - randomize speed and direction
 /// - add function for spawning allied fighters
-/// - add simple enemies
 /// - add a way to despawn the bullets when they're out of view
 
 /// Game objectives:
@@ -14,6 +18,7 @@
 /// - defend the cargo ships (they will deliver powerups, health, etc.
 use bevy::{input::mouse::MouseMotion, prelude::*, render::camera::RenderTarget};
 use lib::{
+    asteroid::{spawn_asteroid, update_asteroid},
     player::{control_player, setup_player, setup_shoot_timer, update_bullet},
     wndcam::setup_wndcam,
 };
@@ -27,6 +32,8 @@ fn main() {
         .add_startup_system(setup_shoot_timer)
         .add_system(control_player)
         .add_system(update_bullet)
+        .add_system(spawn_asteroid)
+        .add_system(update_asteroid)
         .run();
 }
 

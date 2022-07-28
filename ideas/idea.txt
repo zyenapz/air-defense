@@ -1,1 +1,13 @@
 - cargo ships will park in orbit while cargo is loading
+
+mobs ideas:
+> asteroid 
+> armored asteroid
+> rocket-strapped asteroid (or maybe a suicidal pirate bomber?)
+> pirate starship
+> pirate frigate
+
+boss ideas:
+> the asteroid catapult
+	- will throw asteroids strapped with rockets and explosives at you
+
