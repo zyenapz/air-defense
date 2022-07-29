@@ -28,7 +28,7 @@ pub fn spawn_asteroid(
                     custom_size: Some(Vec2::new(20., 20.)),
                     ..default()
                 },
-                transform: Transform::from_xyz(50., 30., 0.),
+                transform: Transform::from_xyz(50., 30., 1.),
                 ..default()
             })
             .insert(asteroid);

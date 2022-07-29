@@ -11,9 +11,10 @@
 ///     - randomize spawning off-camera (or perhaps add a spawning box)
 ///     - randomize speed and direction
 /// + add zooming (for debugging)
-/// - add border that encloses the 800x800 world (for debugging, again)
+/// + add cordon that encloses the 800x800 world (for debugging, again)
 /// - add function for spawning allied fighters
 /// - add a way to despawn the bullets when they're out of view
+/// + fix z-fighting when spawning asteroids
 
 /// Game objectives:
 /// > shoot aliens and asteroids
@@ -21,6 +22,7 @@
 use bevy::{input::mouse::MouseMotion, prelude::*, render::camera::RenderTarget};
 use lib::{
     asteroid::{spawn_asteroid, update_asteroid},
+    debugging::setup_debug_cordon,
     player::{control_player, setup_player, setup_shoot_timer, update_bullet},
     wndcam::{player_camera_control, setup_wndcam},
 };
@@ -32,6 +34,7 @@ fn main() {
         .add_startup_system(setup_wndcam)
         .add_startup_system(setup_player)
         .add_startup_system(setup_shoot_timer)
+        .add_startup_system(setup_debug_cordon)
         .add_system(control_player)
         .add_system(update_bullet)
         .add_system(spawn_asteroid)
