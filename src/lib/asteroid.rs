@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use super::player::Station;
+use super::{defines::WND_RES, player::Station};
 
 #[derive(Component)]
 pub struct Asteroid {
@@ -17,7 +17,7 @@ pub fn spawn_asteroid(
     if (keyboard.pressed(KeyCode::F1)) {
         let asteroid = Asteroid {
             health: 1.,
-            direction: Vec2::new(-1., 0.5),
+            direction: Vec2::new(0., -1.),
             speed: 100.,
         };
 
@@ -28,7 +28,7 @@ pub fn spawn_asteroid(
                     custom_size: Some(Vec2::new(20., 20.)),
                     ..default()
                 },
-                transform: Transform::from_xyz(50., 30., 1.),
+                transform: Transform::from_xyz(0., WND_RES.1 / 2., 1.),
                 ..default()
             })
             .insert(asteroid);
