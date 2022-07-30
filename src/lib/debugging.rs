@@ -1,6 +1,6 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, sprite::collide_aabb::collide};
 
-use super::defines::WND_RES;
+use super::{asteroid::Asteroid, defines::WND_RES, player::Bullet};
 
 pub fn setup_debug_cordon(mut commands: Commands) {
     commands.spawn_bundle(SpriteBundle {
@@ -12,4 +12,30 @@ pub fn setup_debug_cordon(mut commands: Commands) {
         transform: Transform::from_xyz(0., 0., 0.),
         ..default()
     });
+}
+
+pub fn c_bullet_asteroid(
+    b_query: Query<(Entity, &Sprite, &Transform), With<Bullet>>,
+    a_query: Query<(Entity, &Sprite, &Transform), With<Asteroid>>,
+    mut commands: Commands,
+) {
+    for (bul_ent, bul_spr, bul_trans) in b_query.iter() {
+        for (ast_ent, ast_spr, ast_trans) in a_query.iter() {
+            let collision = collide(
+                bul_trans.translation,
+                bul_spr.custom_size.unwrap(),
+                ast_trans.translation,
+                ast_spr.custom_size.unwrap(),
+            );
+
+            match collision {
+                Some(c) => {
+                    println!("{:?}", c);
+                    commands.entity(bul_ent).despawn();
+                    commands.entity(ast_ent).despawn();
+                }
+                None => {}
+            }
+        }
+    }
 }

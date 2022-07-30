@@ -15,14 +15,18 @@
 /// - add function for spawning allied fighters
 /// - add a way to despawn the bullets when they're out of view
 /// + fix z-fighting when spawning asteroids
+/// + add test collision
 
 /// Game objectives:
 /// > shoot aliens and asteroids
 /// > defend the cargo ships (they will deliver powerups, health, etc.
-use bevy::{input::mouse::MouseMotion, prelude::*, render::camera::RenderTarget};
+use bevy::{
+    input::mouse::MouseMotion, prelude::*, render::camera::RenderTarget,
+    sprite::collide_aabb::collide,
+};
 use lib::{
     asteroid::{spawn_asteroid, update_asteroid},
-    debugging::setup_debug_cordon,
+    debugging::{c_bullet_asteroid, setup_debug_cordon},
     player::{control_player, setup_player, setup_shoot_timer, update_bullet},
     wndcam::{player_camera_control, setup_wndcam},
 };
@@ -39,6 +43,7 @@ fn main() {
         .add_system(update_bullet)
         .add_system(spawn_asteroid)
         .add_system(update_asteroid)
+        .add_system(c_bullet_asteroid)
         // For debugging only
         .add_system(player_camera_control)
         .run();
