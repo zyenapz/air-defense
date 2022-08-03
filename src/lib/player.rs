@@ -7,7 +7,7 @@ use crate::lib::defines::PB_INIT_SPEED;
 use super::defines::{P_INIT_ARMOR, P_INIT_FIRE_COOLDOWN, P_INIT_HEALTH};
 
 #[derive(Component)]
-pub struct Station {
+pub struct Player {
     health: f32,
     armor: f32,
 }
@@ -29,7 +29,7 @@ pub struct FireCooldown {
 }
 
 pub fn setup_player(mut commands: Commands) {
-    let station = Station {
+    let station = Player {
         health: P_INIT_HEALTH,
         armor: P_INIT_ARMOR,
     };
@@ -60,7 +60,7 @@ pub fn control_player(
     time: Res<Time>,
     mut cooldown: ResMut<FireCooldown>,
     mut commands: Commands,
-    mut query: Query<(&Station, &mut Gun)>,
+    mut query: Query<(&Player, &mut Gun)>,
 ) {
     // Update timer
     cooldown.timer.tick(time.delta());

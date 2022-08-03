@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use rand::Rng;
 
-use super::{defines::WND_RES, player::Station};
+use super::{defines::WND_RES, player::Player};
 
 #[derive(Component)]
 pub struct Asteroid {
@@ -12,7 +12,7 @@ pub struct Asteroid {
 
 pub fn spawn_asteroid(
     mut commands: Commands,
-    mut p_query: Query<&Transform, With<Station>>,
+    mut p_query: Query<&Transform, With<Player>>,
     // TODO: For debugging only, remove later.
     keyboard: Res<Input<KeyCode>>,
 ) {
