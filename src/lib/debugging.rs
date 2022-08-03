@@ -28,13 +28,9 @@ pub fn c_bullet_asteroid(
                 ast_spr.custom_size.unwrap(),
             );
 
-            match collision {
-                Some(c) => {
-                    println!("{:?}", c);
-                    commands.entity(bul_ent).despawn();
-                    commands.entity(ast_ent).despawn();
-                }
-                None => {}
+            if let Some(c) = collision {
+                commands.entity(bul_ent).despawn();
+                commands.entity(ast_ent).despawn();
             }
         }
     }

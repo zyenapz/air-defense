@@ -2671,6 +2671,7 @@ name = "station-commander"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "rand",
 ]
 
 [[package]]

@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use rand::Rng;
 
 use super::{defines::WND_RES, player::Station};
 
@@ -11,14 +12,28 @@ pub struct Asteroid {
 
 pub fn spawn_asteroid(
     mut commands: Commands,
+    mut p_query: Query<&Transform, With<Station>>,
     // TODO: For debugging only, remove later.
     keyboard: Res<Input<KeyCode>>,
 ) {
+    let half_width_wnd = WND_RES.0 / 2.;
+
     if (keyboard.pressed(KeyCode::F1)) {
+        let ax = rand::thread_rng().gen_range(-half_width_wnd..half_width_wnd);
+        let ay = WND_RES.1 / 2.;
+
+        let player_pos = p_query.single();
+
+        let rel_x = player_pos.translation.x - ax;
+        let rel_y = player_pos.translation.y - ay;
+        let angle = rel_y.atan2(rel_x);
+
+        let ast_direction = Vec2::new(angle.cos(), angle.sin());
+
         let asteroid = Asteroid {
             health: 1.,
-            direction: Vec2::new(0., -1.),
-            speed: 100.,
+            direction: ast_direction,
+            speed: 80.,
         };
 
         commands
@@ -28,7 +43,7 @@ pub fn spawn_asteroid(
                     custom_size: Some(Vec2::new(20., 20.)),
                     ..default()
                 },
-                transform: Transform::from_xyz(0., WND_RES.1 / 2., 1.),
+                transform: Transform::from_xyz(ax, ay, 1.),
                 ..default()
             })
             .insert(asteroid);
