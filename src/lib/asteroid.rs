@@ -1,5 +1,6 @@
 use bevy::prelude::*;
-use rand::Rng;
+use rand::{seq::SliceRandom, Rng};
+use rand_distr::{Distribution, UnitCircle};
 
 use super::{defines::WND_RES, player::Player};
 
@@ -16,12 +17,21 @@ pub fn spawn_asteroid(
     // TODO: For debugging only, remove later.
     keyboard: Res<Input<KeyCode>>,
 ) {
-    let half_width_wnd = WND_RES.0 / 2.;
-
     if (keyboard.pressed(KeyCode::F1)) {
-        let ax = rand::thread_rng().gen_range(-half_width_wnd..half_width_wnd);
-        let ay = WND_RES.1 / 2.;
+        // Randomize spawn position
+        let wnd_width = WND_RES.0;
+        let wnd_height = WND_RES.1;
 
+        let v: [f64; 2] = UnitCircle.sample(&mut rand::thread_rng());
+        println!("{:?} is from the unit circle.", v);
+
+        let ax = v[0] as f32 * 800.;
+        let ay = v[1] as f32 * 800.;
+
+        // Randomize speed
+        let speed = rand::thread_rng().gen_range(80_f32..=100_f32);
+
+        // Determine direction
         let player_pos = p_query.single();
 
         let rel_x = player_pos.translation.x - ax;
@@ -33,7 +43,7 @@ pub fn spawn_asteroid(
         let asteroid = Asteroid {
             health: 1.,
             direction: ast_direction,
-            speed: 80.,
+            speed: speed,
         };
 
         commands

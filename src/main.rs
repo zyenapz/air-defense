@@ -8,8 +8,9 @@
 /// - add asteroids
 ///     + add way to spawn them
 ///     + add update code
-///     - randomize spawning off-camera (or perhaps add a spawning box)
-///     - randomize speed and direction
+///     + randomize spawning off-camera (or perhaps add a spawning box)
+///     + randomize speed and direction
+///     - add sprites
 /// + add zooming (for debugging)
 /// + add cordon that encloses the 800x800 world (for debugging, again)
 /// - add function for spawning allied fighters
