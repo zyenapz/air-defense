@@ -2,29 +2,29 @@ use std::time::Duration;
 
 use bevy::prelude::*;
 
-use crate::lib::defines::PB_INIT_SPEED;
+use crate::lib::{
+    bullet::{BulletBundle, PlayerBullet},
+    defines::PB_INIT_SPEED,
+    shared::{Speed, ZnDirection},
+};
 
 use super::{
     defines::{P_INIT_ARMOR, P_INIT_FIRE_COOLDOWN, P_INIT_HEALTH},
+    shared::{Armor, Health},
     wndcam::PlayerCamera,
 };
 
-#[derive(Component)]
-pub struct Player {
-    health: f32,
-    armor: f32,
+#[derive(Bundle)]
+pub struct PlayerBundle {
+    health: Health,
+    armor: Armor,
 }
 
 #[derive(Component)]
-pub struct Gun {
-    rotation: f32,
-}
+pub struct Player;
 
 #[derive(Component)]
-pub struct Bullet {
-    speed: f32,
-    direction: Vec2,
-}
+pub struct FireTimer(Timer);
 
 #[derive(Component)]
 pub struct FireCooldown {
@@ -32,12 +32,6 @@ pub struct FireCooldown {
 }
 
 pub fn setup_player(mut commands: Commands) {
-    let station = Player {
-        health: P_INIT_HEALTH,
-        armor: P_INIT_ARMOR,
-    };
-    let gun = Gun { rotation: 0. };
-
     commands
         .spawn_bundle(SpriteBundle {
             sprite: Sprite {
@@ -48,8 +42,11 @@ pub fn setup_player(mut commands: Commands) {
             transform: Transform::from_xyz(0., 0., 0.),
             ..default()
         })
-        .insert(station)
-        .insert(gun);
+        .insert_bundle(PlayerBundle {
+            health: Health(P_INIT_HEALTH),
+            armor: Armor(P_INIT_ARMOR),
+        })
+        .insert(Player);
 }
 
 pub fn setup_shoot_timer(mut commands: Commands) {
@@ -58,69 +55,14 @@ pub fn setup_shoot_timer(mut commands: Commands) {
     })
 }
 
-pub fn control_player(
-    keyboard: Res<Input<KeyCode>>,
-    time: Res<Time>,
-    mut cooldown: ResMut<FireCooldown>,
-    mut commands: Commands,
-    mut query: Query<(&Player, &mut Gun)>,
-) {
-    // Update timer
-    cooldown.timer.tick(time.delta());
-
-    match query.get_single_mut() {
-        Ok(mut player) => {
-            // --- Rotate gun ---
-            if keyboard.pressed(KeyCode::Q) {
-                player.1.rotation -= 2.;
-            } else if keyboard.pressed(KeyCode::E) {
-                player.1.rotation += 2.;
-            }
-
-            // --- Fire bullet ---
-            if (keyboard.pressed(KeyCode::Z) || keyboard.pressed(KeyCode::Space))
-                && cooldown.timer.finished()
-            {
-                let angle = player.1.rotation.to_radians();
-                let dx = angle.sin();
-                let dy = angle.cos();
-
-                let bullet = Bullet {
-                    speed: PB_INIT_SPEED,
-                    direction: Vec2::new(dx, dy),
-                };
-
-                commands
-                    .spawn_bundle(SpriteBundle {
-                        sprite: Sprite {
-                            color: Color::YELLOW,
-                            custom_size: Some(Vec2::new(10., 10.)),
-                            ..default()
-                        },
-                        transform: Transform::from_xyz(0., 0., 1.),
-                        ..default()
-                    })
-                    .insert(bullet);
-            }
-        }
-        Err(e) => panic!("{}", e),
-    }
-}
-
-pub fn update_bullet(time: Res<Time>, mut query: Query<(&Bullet, &mut Transform)>) {
-    for (b, mut t) in query.iter_mut() {
-        t.translation.x += b.direction.x * b.speed * time.delta_seconds();
-        t.translation.y += b.direction.y * b.speed * time.delta_seconds();
-    }
-}
-
 pub fn control_player_mouse(
     time: Res<Time>,
     mut cooldown: ResMut<FireCooldown>,
     mut commands: Commands,
-    q_player: Query<(&Player, &mut Gun, &Transform)>,
+    q_player: Query<&Transform, With<Player>>,
     q_camera: Query<(&Camera, &GlobalTransform), With<PlayerCamera>>,
     wnds: Res<Windows>,
+    m_btn: Res<Input<MouseButton>>,
 ) {
     // get the camera info and transform
     // assuming there is exactly one main camera entity, so query::single() is OK
@@ -151,26 +93,16 @@ pub fn control_player_mouse(
     let player = q_player.single();
     cooldown.timer.tick(time.delta());
 
-    // eprintln!(
-    //     "{} {} {} {}",
-    //     mouse_pos.x, mouse_pos.y, player.2.translation.x, player.2.translation.y
-    // );
-
     // --- Fire bullet ---
-    if cooldown.timer.finished() {
-        let rel_y = mouse_pos.y - player.2.translation.y;
-        let rel_x = mouse_pos.x - player.2.translation.x;
+    if m_btn.pressed(MouseButton::Left) && cooldown.timer.finished() {
+        let rel_y = mouse_pos.y - player.translation.y;
+        let rel_x = mouse_pos.x - player.translation.x;
 
         let angle = rel_y.atan2(rel_x);
         let dx = angle.cos();
         let dy = angle.sin();
 
         println!("{} {}", dx, dy);
-
-        let bullet = Bullet {
-            speed: PB_INIT_SPEED,
-            direction: Vec2::new(dx, dy),
-        };
 
         commands
             .spawn_bundle(SpriteBundle {
@@ -182,6 +114,10 @@ pub fn control_player_mouse(
                 transform: Transform::from_xyz(0., 0., 1.),
                 ..default()
             })
-            .insert(bullet);
+            .insert_bundle(BulletBundle {
+                speed: Speed(PB_INIT_SPEED),
+                direction: ZnDirection(Vec2::new(dx, dy)),
+            })
+            .insert(PlayerBullet);
     }
 }

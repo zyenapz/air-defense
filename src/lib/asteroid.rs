@@ -1,26 +1,30 @@
 use bevy::prelude::*;
-use rand::{seq::SliceRandom, Rng};
+use rand::Rng;
 use rand_distr::{Distribution, UnitCircle};
 
 use super::{
     defines::{AST_MAX_SPEED, AST_MIN_SPEED, WND_RES},
     player::Player,
+    shared::{Health, Speed, ZnDirection},
 };
 
-#[derive(Component)]
-pub struct Asteroid {
-    health: f32,
-    direction: Vec2,
-    speed: f32,
+#[derive(Bundle)]
+pub struct AsteroidBundle {
+    health: Health,
+    direction: ZnDirection,
+    speed: Speed,
 }
+
+#[derive(Component)]
+pub struct Asteroid;
 
 pub fn spawn_asteroid(
     mut commands: Commands,
-    mut p_query: Query<&Transform, With<Player>>,
+    p_query: Query<&Transform, With<Player>>,
     // TODO: For debugging only, remove later.
     keyboard: Res<Input<KeyCode>>,
 ) {
-    if (keyboard.pressed(KeyCode::F1)) {
+    if keyboard.pressed(KeyCode::F1) {
         // Randomize spawn position
         let rx = WND_RES.0 * 0.8;
         let ry = WND_RES.1 * 0.8;
@@ -30,9 +34,6 @@ pub fn spawn_asteroid(
         let ax = v[0] as f32 * rx;
         let ay = v[1] as f32 * ry;
 
-        // Randomize speed
-        let speed = rand::thread_rng().gen_range(AST_MIN_SPEED..=AST_MAX_SPEED);
-
         // Determine direction
         let player_pos = p_query.single();
 
@@ -40,31 +41,31 @@ pub fn spawn_asteroid(
         let rel_y = player_pos.translation.y - ay;
         let angle = rel_y.atan2(rel_x);
 
-        let ast_direction = Vec2::new(angle.cos(), angle.sin());
-
-        let asteroid = Asteroid {
-            health: 1.,
-            direction: ast_direction,
-            speed: speed,
-        };
-
         commands
             .spawn_bundle(SpriteBundle {
                 sprite: Sprite {
                     color: Color::RED,
-                    custom_size: Some(Vec2::new(20., 20.)),
+                    custom_size: Some(Vec2::new(32., 32.)),
                     ..default()
                 },
                 transform: Transform::from_xyz(ax, ay, 1.),
                 ..default()
             })
-            .insert(asteroid);
+            .insert_bundle(AsteroidBundle {
+                health: Health(2.),
+                direction: ZnDirection(Vec2::new(angle.cos(), angle.sin())),
+                speed: Speed(rand::thread_rng().gen_range(AST_MIN_SPEED..=AST_MAX_SPEED)),
+            })
+            .insert(Asteroid);
     }
 }
 
-pub fn update_asteroid(time: Res<Time>, mut query: Query<(&Asteroid, &mut Transform)>) {
-    for (a, mut t) in query.iter_mut() {
-        t.translation.x += a.direction.x * a.speed * time.delta_seconds();
-        t.translation.y += a.direction.y * a.speed * time.delta_seconds();
+pub fn update_asteroid(
+    time: Res<Time>,
+    mut query: Query<(&Speed, &ZnDirection, &mut Transform), With<Asteroid>>,
+) {
+    for (speed, direction, mut transform) in query.iter_mut() {
+        transform.translation.x += direction.0.x * speed.0 * time.delta_seconds();
+        transform.translation.y += direction.0.y * speed.0 * time.delta_seconds();
     }
 }
