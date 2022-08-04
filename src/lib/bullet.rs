@@ -8,9 +8,6 @@ pub struct BulletBundle {
     pub(crate) direction: ZnDirection,
 }
 
-#[derive(Component)]
-pub struct PlayerBullet;
-
 pub fn update_bullet(time: Res<Time>, mut query: Query<(&ZnDirection, &Speed, &mut Transform)>) {
     for (direction, speed, mut transform) in query.iter_mut() {
         transform.translation.x += direction.0.x * speed.0 * time.delta_seconds();

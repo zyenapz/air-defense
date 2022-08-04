@@ -1,6 +1,6 @@
 use bevy::{prelude::*, sprite::collide_aabb::collide};
 
-use super::{asteroid::Asteroid, bullet::PlayerBullet, defines::WND_RES};
+use super::{asteroid::Asteroid, defines::WND_RES, player::Player};
 
 pub fn setup_debug_cordon(mut commands: Commands) {
     commands.spawn_bundle(SpriteBundle {
@@ -15,7 +15,7 @@ pub fn setup_debug_cordon(mut commands: Commands) {
 }
 
 pub fn c_bullet_asteroid(
-    b_query: Query<(Entity, &Sprite, &Transform), With<PlayerBullet>>,
+    b_query: Query<(Entity, &Sprite, &Transform), With<Player>>,
     a_query: Query<(Entity, &Sprite, &Transform), With<Asteroid>>,
     mut commands: Commands,
 ) {
