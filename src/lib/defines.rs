@@ -6,4 +6,8 @@ pub const WND_TITLE: &str = "Station Commander";
 pub const P_INIT_HEALTH: f32 = 10.;
 pub const P_INIT_ARMOR: f32 = 0.;
 pub const PB_INIT_SPEED: f32 = 300.;
-pub const P_INIT_FIRE_COOLDOWN: u64 = 100;
+pub const P_INIT_FIRE_COOLDOWN: u64 = 200;
+
+// --- ASTEROID DEFINES ---
+pub const AST_MIN_SPEED: f32 = 20.;
+pub const AST_MAX_SPEED: f32 = 40.;

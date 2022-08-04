@@ -28,7 +28,9 @@ use bevy::{
 use lib::{
     asteroid::{spawn_asteroid, update_asteroid},
     debugging::{c_bullet_asteroid, setup_debug_cordon},
-    player::{control_player, setup_player, setup_shoot_timer, update_bullet},
+    player::{
+        control_player, control_player_mouse, setup_player, setup_shoot_timer, update_bullet,
+    },
     wndcam::{player_camera_control, setup_wndcam},
 };
 mod lib;
@@ -40,7 +42,8 @@ fn main() {
         .add_startup_system(setup_player)
         .add_startup_system(setup_shoot_timer)
         .add_startup_system(setup_debug_cordon)
-        .add_system(control_player)
+        // .add_system(control_player)
+        .add_system(control_player_mouse)
         .add_system(update_bullet)
         .add_system(spawn_asteroid)
         .add_system(update_asteroid)

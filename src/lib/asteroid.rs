@@ -2,7 +2,10 @@ use bevy::prelude::*;
 use rand::{seq::SliceRandom, Rng};
 use rand_distr::{Distribution, UnitCircle};
 
-use super::{defines::WND_RES, player::Player};
+use super::{
+    defines::{AST_MAX_SPEED, AST_MIN_SPEED, WND_RES},
+    player::Player,
+};
 
 #[derive(Component)]
 pub struct Asteroid {
@@ -19,17 +22,16 @@ pub fn spawn_asteroid(
 ) {
     if (keyboard.pressed(KeyCode::F1)) {
         // Randomize spawn position
-        let wnd_width = WND_RES.0;
-        let wnd_height = WND_RES.1;
+        let rx = WND_RES.0 * 0.8;
+        let ry = WND_RES.1 * 0.8;
 
         let v: [f64; 2] = UnitCircle.sample(&mut rand::thread_rng());
-        println!("{:?} is from the unit circle.", v);
 
-        let ax = v[0] as f32 * 800.;
-        let ay = v[1] as f32 * 800.;
+        let ax = v[0] as f32 * rx;
+        let ay = v[1] as f32 * ry;
 
         // Randomize speed
-        let speed = rand::thread_rng().gen_range(80_f32..=100_f32);
+        let speed = rand::thread_rng().gen_range(AST_MIN_SPEED..=AST_MAX_SPEED);
 
         // Determine direction
         let player_pos = p_query.single();
