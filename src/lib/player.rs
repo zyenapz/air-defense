@@ -3,7 +3,7 @@ use std::time::Duration;
 use bevy::prelude::*;
 
 use crate::lib::{
-    bullet::BulletBundle,
+    bullet::{BulletBundle, PlayerBullet},
     defines::PB_INIT_SPEED,
     shared::{Speed, ZnDirection},
 };
@@ -118,6 +118,6 @@ pub fn control_player_mouse(
                 speed: Speed(PB_INIT_SPEED),
                 direction: ZnDirection(Vec2::new(dx, dy)),
             })
-            .insert(Player);
+            .insert(PlayerBullet);
     }
 }

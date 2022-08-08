@@ -1,6 +1,6 @@
 use bevy::{prelude::*, sprite::collide_aabb::collide};
 
-use super::{asteroid::Asteroid, defines::WND_RES, player::Player};
+use super::{asteroid::Asteroid, bullet::PlayerBullet, defines::WND_RES, shared::Health};
 
 pub fn setup_debug_cordon(mut commands: Commands) {
     commands.spawn_bundle(SpriteBundle {
@@ -15,12 +15,12 @@ pub fn setup_debug_cordon(mut commands: Commands) {
 }
 
 pub fn c_bullet_asteroid(
-    b_query: Query<(Entity, &Sprite, &Transform), With<Player>>,
-    a_query: Query<(Entity, &Sprite, &Transform), With<Asteroid>>,
+    b_query: Query<(Entity, &Sprite, &Transform), With<PlayerBullet>>,
+    mut a_query: Query<(Entity, &Sprite, &Transform, &mut Health), With<Asteroid>>,
     mut commands: Commands,
 ) {
     for (bul_ent, bul_spr, bul_trans) in b_query.iter() {
-        for (ast_ent, ast_spr, ast_trans) in a_query.iter() {
+        for (ast_ent, ast_spr, ast_trans, mut ast_health) in a_query.iter_mut() {
             let collision = collide(
                 bul_trans.translation,
                 bul_spr.custom_size.unwrap(),
@@ -29,8 +29,12 @@ pub fn c_bullet_asteroid(
             );
 
             if let Some(_) = collision {
+                ast_health.0 -= 1.;
                 commands.entity(bul_ent).despawn();
-                commands.entity(ast_ent).despawn();
+
+                if ast_health.0 <= 0. {
+                    commands.entity(ast_ent).despawn();
+                }
             }
         }
     }
