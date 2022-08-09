@@ -14,7 +14,8 @@
 /// + add zooming (for debugging)
 /// + add cordon that encloses the 800x800 world (for debugging, again)
 /// - add function for spawning allied fighters
-/// - add a way to despawn the bullets when they're out of view
+/// + add a way to despawn the bullets when they're out of view
+/// + add a check in the asteroid-bullet collision that tests if the bullet is out of the map first before executing collision logic
 /// + fix z-fighting when spawning asteroids
 /// + add test collision
 
