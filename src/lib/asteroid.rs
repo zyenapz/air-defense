@@ -21,6 +21,7 @@ pub struct Asteroid;
 pub fn spawn_asteroid(
     mut commands: Commands,
     p_query: Query<&Transform, With<Player>>,
+    asset_server: Res<AssetServer>,
     // TODO: For debugging only, remove later.
     keyboard: Res<Input<KeyCode>>,
 ) {
@@ -44,11 +45,11 @@ pub fn spawn_asteroid(
         commands
             .spawn_bundle(SpriteBundle {
                 sprite: Sprite {
-                    color: Color::RED,
-                    custom_size: Some(Vec2::new(32., 32.)),
+                    custom_size: Some(Vec2::new(64., 64.)),
                     ..default()
                 },
                 transform: Transform::from_xyz(ax, ay, 1.),
+                texture: asset_server.load("aster_01.png"),
                 ..default()
             })
             .insert_bundle(AsteroidBundle {
